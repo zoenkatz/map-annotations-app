@@ -3,12 +3,14 @@
   flex-direction: row;
   justify-content: flex-start;
   .app-info{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     flex: 0.25;
     margin-left: 10px;
     .app-search{
       display: flex;
       flex-direction: row;
-      padding: 21px;
 
       input{
         height: 23px;
