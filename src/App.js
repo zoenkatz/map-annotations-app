@@ -1,9 +1,9 @@
 import React, {useContext, useReducer, useEffect, useState} from 'react';
-import './index.css';
+//import './index.scss';
 import axios from 'axios';
 import AppContext from './AppContext';
 import AppReducer from './AppReducer';
-//import './App.scss';
+import './App.scss';
 //import Geocoder from '@mapbox/react-geocoder';
 //import Geocoder from 'react-geocoder-autocomplete'
 import ReactMapboxGl, { Layer, Feature } from "react-mapbox-gl";
@@ -45,7 +45,7 @@ function App (){
            <div className="app-map-annotations">
                <div className="app-info">
                    <div className="app-search">
-                       <input/><button>Search</button>
+                       <input placeholder="Type to search..."/><button>Search</button>
                    </div>
                    <div className="app-action-buttons">
                        <button>Point</button>
