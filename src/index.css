@@ -1,0 +1,40 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.app-map-annotations {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.app-info{
+  flex: 0.25;
+}
+.app-map{
+  flex: 0.75;
+}
+
+.app-action-buttons{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px;
+}
+
+button {
+  height:50px;
+  width:100px;
+  border: none;
+  background: #404040;
+  color: #ffffff;
+  font-weight: 100;
+  padding: 20px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  display: inline-block;
+  transition: all 0.3s ease 0s;
+  margin:5px;
+}

@@ -1,0 +1,11 @@
+.app-map-annotations{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  .app-info{
+    flex: 0.25;
+  }
+  .app-map{
+    flex: 0.75;
+  }
+}
