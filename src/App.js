@@ -6,8 +6,11 @@ import AppReducer from './AppReducer';
 import './App.scss';
 //import Geocoder from '@mapbox/react-geocoder';
 //import Geocoder from 'react-geocoder-autocomplete'
-import ReactMapboxGl, { Layer, Feature } from "react-mapbox-gl";
-import MapboxGLMap from './MapboxGLMap';
+//import ReactMapboxGl, { Layer, Feature } from "react-mapbox-gl";
+import MapboxGLMap from './Components/MapboxGLMap';
+import SearchBar from "./Components/SearchBar";
+import ActionButtons from "./Components/ActionButtons";
+import Annotationlist from "./Components/AnnotationList";
 
 function App (){
     const initialState = useContext(AppContext);
@@ -19,9 +22,9 @@ function App (){
             setData(response.data);
         };
 
-        useEffect(() => {
-            getData();
-        }, [state.query]);
+        // useEffect(() => {
+        //     getData();
+        // }, [state.query, getData]);
 
 
 
@@ -30,29 +33,23 @@ function App (){
 
     const savedAnnotations = useApi(`https://api.mapbox.com/geocoding/v5/mapbox.places/Los%20Angeles.json?access_token=pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg`);
 
-    useEffect(() => {
-
-        dispatch({
-            type: "GET_ANNOTATIONS",
-            payload: savedAnnotations
-        });
-
-    }, [savedAnnotations]);
+    // useEffect(() => {
+    //
+    //     dispatch({
+    //         type: "GET_ANNOTATIONS",
+    //         payload: savedAnnotations
+    //     });
+    //
+    // }, [savedAnnotations]);
 
 
     return (
        <AppContext.Provider value={{state, dispatch}}>
            <div className="app-map-annotations">
                <div className="app-info">
-                   <div className="app-search">
-                       <input placeholder="Type to search..."/><button>Search</button>
-                   </div>
-                   <div className="app-action-buttons">
-                       <button>Point</button>
-                       <button>Line</button>
-                       <button>Polygon</button>
-                   </div>
-                   <div className="app-annotation-list"></div>
+                   <SearchBar/>
+                    <ActionButtons/>
+                   <Annotationlist/>
                </div>
                <div className="app-map">
                    <MapboxGLMap/>

@@ -6,21 +6,48 @@
     width: 100%;
     display: flex;
     flex-direction: column;
+    align-items: center;
     flex: 0.25;
-    margin-left: 10px;
     .app-search{
       display: flex;
       flex-direction: row;
+      justify-content: center;
+      background-color: #7ca7a7;
+      width: 100%;
 
       input{
+        flex: 0.9;
         height: 23px;
-        width: 79%;
+        width: 64%;
         margin-top: 17px;
       }
 
     }
+    .app-action-buttons{
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      background-color: #866277;
+      margin: 0px;
+    }
   }
   .app-map{
     flex: 0.75;
+  }
+
+  button {
+    height:50px;
+    width:100px;
+    border: none;
+    background: #404040;
+    color: #ffffff;
+    font-weight: 100;
+    padding: 20px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    display: inline-block;
+    transition: all 0.3s ease 0s;
+    margin: 5px;
   }
 }

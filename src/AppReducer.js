@@ -8,7 +8,7 @@ export default function AppReducer (state, action){
         case "SET_QUERY":
             return{
                 ...state,
-                query: action.payload
+                query: action.payload.query
             };
 
         default:
