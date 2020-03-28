@@ -16,31 +16,32 @@ function App (){
     const initialState = useContext(AppContext);
     const [state, dispatch] = useReducer(AppReducer, initialState);
     const useApi = (endpoint) => {
-        const [data, setData] = useState([]);
+        const [mapCenter, setMapCenter] = useState([]);
         const getData = async () => {
             const response = await axios.get(endpoint);
-            setData(response.data);
+            setMapCenter(response.data.features[0].center);
         };
 
-        // useEffect(() => {
-        //     getData();
-        // }, [state.query, getData]);
+        useEffect(() => {
+            getData();
+        }, [state.query]);
 
 
 
-        return data;
+        return mapCenter;
     };
 
-    const savedAnnotations = useApi(`https://api.mapbox.com/geocoding/v5/mapbox.places/Los%20Angeles.json?access_token=pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg`);
+    const savedResponseMapCenter = useApi(`https://api.mapbox.com/geocoding/v5/mapbox.places/${state.query}.json?access_token=pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg`);
 
-    // useEffect(() => {
-    //
-    //     dispatch({
-    //         type: "GET_ANNOTATIONS",
-    //         payload: savedAnnotations
-    //     });
-    //
-    // }, [savedAnnotations]);
+    useEffect(() => {
+        if(savedResponseMapCenter && !!savedResponseMapCenter.length) {
+            dispatch({
+                type: "SET_MAP_CENTER",
+                payload: {center: savedResponseMapCenter}
+            });
+        }
+
+    }, [savedResponseMapCenter]);
 
 
     return (

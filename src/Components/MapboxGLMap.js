@@ -4,6 +4,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import Feature from "react-mapbox-gl/lib-esm/feature";
 import Layer from "react-mapbox-gl/lib-esm/layer";
 import AppContext from '../AppContext';
+import {isEmpty} from 'lodash';
+import MapboxGeocoder from 'mapbox-gl-geocoder';
+import Geocode from "react-geocode";
 
 const styles = {
     width: "100vw",
@@ -16,7 +19,19 @@ const MapboxGLMap = () => {
     const [map, setMap] = useState(null);
     const [circleRadius, setCircleRadius] = useState(30);
     const [routeIndex, setRouteIndex] = useState(0);
+    const [zoom, setZoom] = useState(8);
     const mapContainer = useRef(null);
+
+    mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';
+
+    const initializeMap = ({ setMap, mapContainer}) => {
+        setMap(new mapboxgl.Map({
+            container: mapContainer.current,
+            style: "mapbox://styles/mapbox/streets-v11", // stylesheet location
+            center: state.center,
+            zoom: zoom
+        }));
+    };
 
     const lineLayout = {
         'line-cap': 'round',
@@ -41,27 +56,16 @@ const MapboxGLMap = () => {
         'circle-opacity': 0.8
     });
 
-            useEffect(() => {
-                console.log(state, "state");
-        mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';
-        mapboxgl.apiUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${state.query}.json`;
-       // mapboxgl.query = appState.query;
-        const initializeMap = ({ setMap, mapContainer}) => {
-            const map = new mapboxgl.Map({
-                container: mapContainer.current,
-                style: "mapbox://styles/mapbox/streets-v11", // stylesheet location
-                center: [-0.120736, 51.5118219],
-                zoom: [8]
-            });
+    useEffect(() => {
+        if(map) {
+            map.resize();
+        }
+    }, [map]);
 
-            map.on("load", () => {
-                setMap(map);
-                map.resize();
-            });
-        };
-
-        if (!map) initializeMap({ setMap, mapContainer });
-    }, [map, state.query]);
+    useEffect(() => {
+        console.log(state, "state");
+        initializeMap({ setMap, mapContainer });
+    }, [state.center, zoom]);
 
     return <div ref={el => (mapContainer.current = el)} style={styles} >
         {/* Line example */}

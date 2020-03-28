@@ -1,9 +1,9 @@
 export default function AppReducer (state, action){
     switch(action.type) {
-        case "GET_ANNOTATIONS":
+        case "SET_MAP_CENTER":
             return{
                 ...state,
-                annotations: action.payload.data
+                center: action.payload.center
             };
         case "SET_QUERY":
             return{
