@@ -19,7 +19,10 @@ function App (){
         const [mapCenter, setMapCenter] = useState([]);
         const getData = async () => {
             const response = await axios.get(endpoint);
-            setMapCenter(response.data.features[0].center);
+            console.log(response.data);
+            if(response.data.features && !!response.data.features.length) {
+                setMapCenter(response.data.features[0].center);
+            }
         };
 
         useEffect(() => {

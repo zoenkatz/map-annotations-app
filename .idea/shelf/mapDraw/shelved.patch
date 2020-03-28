@@ -1,0 +1,88 @@
+Index: src/Components/MapboxGLMap.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useEffect, useRef, useState, useContext } from \"react\";\nimport mapboxgl from \"mapbox-gl\";\nimport \"mapbox-gl/dist/mapbox-gl.css\";\nimport Feature from \"react-mapbox-gl/lib-esm/feature\";\nimport Layer from \"react-mapbox-gl/lib-esm/layer\";\nimport AppContext from '../AppContext';\nimport {isEmpty} from 'lodash';\nimport MapboxGeocoder from 'mapbox-gl-geocoder';\nimport Geocode from \"react-geocode\";\n\nconst styles = {\n    width: \"100vw\",\n    height: \"100vw\",\n    position: \"absolute\"\n};\n\nconst MapboxGLMap = () => {\n    const {state} = useContext(AppContext);\n    const [map, setMap] = useState(null);\n    const [circleRadius, setCircleRadius] = useState(30);\n    const [routeIndex, setRouteIndex] = useState(0);\n    const [zoom, setZoom] = useState(8);\n    const mapContainer = useRef(null);\n\n    mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';\n\n    const initializeMap = ({ setMap, mapContainer}) => {\n        setMap(new mapboxgl.Map({\n            container: mapContainer.current,\n            style: \"mapbox://styles/mapbox/streets-v11\", // stylesheet location\n            center: state.center,\n            zoom: zoom\n        }));\n    };\n\n    const lineLayout = {\n        'line-cap': 'round',\n        'line-join': 'round'\n    };\n\n    const linePaint = {\n        'line-color': '#4790E5',\n        'line-width': 12\n    };\n\n    const polygonPaint = {\n        'fill-color': '#6F788A',\n        'fill-opacity': 0.7\n    };\n\n\n\n    const getCirclePaint = () => ({\n        'circle-radius': circleRadius,\n        'circle-color': '#000',\n        'circle-opacity': 0.8\n    });\n\n    useEffect(() => {\n        if(map) {\n            map.resize();\n        }\n    }, [map]);\n\n    useEffect(() => {\n        console.log(state, \"state\");\n        initializeMap({ setMap, mapContainer });\n    }, [state.center, zoom]);\n\n    return <div ref={el => (mapContainer.current = el)} style={styles} >\n        {/* Line example */}\n        {/*<Layer type=\"line\" layout={lineLayout} paint={linePaint}>*/}\n        {/*    <Feature coordinates={[-0.120736, 51.5118219]} />*/}\n        {/*</Layer>*/}\n\n        {/*/!* Circle example *!/*/}\n        {/*<Layer type=\"circle\" paint={getCirclePaint()}>*/}\n        {/*    <Feature coordinates={[-0.120736, 51.5118219]} />*/}\n        {/*</Layer>*/}\n\n    </div>\n};\n\nexport default MapboxGLMap;\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/Components/MapboxGLMap.js	(revision c12de7d869491a7625a9d7e29cfb2c11bc987a37)
++++ src/Components/MapboxGLMap.js	(date 1585415531000)
+@@ -4,8 +4,10 @@
+ import Feature from "react-mapbox-gl/lib-esm/feature";
+ import Layer from "react-mapbox-gl/lib-esm/layer";
+ import AppContext from '../AppContext';
++import MapboxDraw from 'mapbox-gl-draw';
+ import {isEmpty} from 'lodash';
+ import MapboxGeocoder from 'mapbox-gl-geocoder';
++import turf from '@turf/turf'
+ import Geocode from "react-geocode";
+ 
+ const styles = {
+@@ -17,6 +19,7 @@
+ const MapboxGLMap = () => {
+     const {state} = useContext(AppContext);
+     const [map, setMap] = useState(null);
++    const [mapDraw, setMapDraw] = useState(null);
+     const [circleRadius, setCircleRadius] = useState(30);
+     const [routeIndex, setRouteIndex] = useState(0);
+     const [zoom, setZoom] = useState(8);
+@@ -31,7 +34,59 @@
+             center: state.center,
+             zoom: zoom
+         }));
++        setMapDraw(new MapboxDraw({
++            displayControlsDefault: false,
++            controls: {
++                polygon: true,
++                trash: true
++            }})
++        );
++    };
++
++     const drawLine = () => {
++        setMapDraw(new MapboxDraw({
++            displayControlsDefault: false,
++            controls: {
++                polygon: true,
++                trash: true
++            }})
++        );
++
+     };
++
++    const updateArea = (e) => {
++        if(mapDraw) {
++            const data = mapDraw && mapDraw.getAll();
++            let answer = document.getElementById('calculated-area');
++            if (data) {
++                if (data.features.length > 0) {
++                    const area = turf.area(data);
++// restrict to area to 2 decimal points
++                    const rounded_area = Math.round(area * 100) / 100;
++                    answer.innerHTML =
++                        '<p><strong>' +
++                        rounded_area +
++                        '</strong></p><p>square meters</p>';
++                } else {
++                    answer.innerHTML = '';
++                    if (e.type !== 'draw.delete')
++                        alert('Use the draw tools to draw a polygon!');
++                }
++            }
++        }
++    };
++
++    useEffect(() => {
++        updateArea()
++
++    }, [state.isDrawLine, state.isDrawPoint, state.isDrawPolygon]);
++
++    useEffect(() => {
++        if(map) {
++            map.addControl(mapDraw);
++        }
++    }, [mapDraw, map]);
++
+ 
+     const lineLayout = {
+         'line-cap': 'round',
