@@ -7,7 +7,8 @@ const AppContext = React.createContext({
     isDrawPolygon: false,
     isDrawLine: false,
     isDrawPoint: false,
-    coordinates: []
+    coordinates: [],
+    routes: []
 });
 
 export default AppContext;

@@ -17,7 +17,7 @@ const styles = {
 };
 
 const MapboxGLMap = () => {
-    const {state} = useContext(AppContext);
+    const {state, dispatch} = useContext(AppContext);
     const [map, setMap] = useState(null);
     const [mapDraw, setMapDraw] = useState(null);
     const [circleRadius, setCircleRadius] = useState(30);
@@ -102,13 +102,17 @@ const MapboxGLMap = () => {
         initializeMap({ setMap, mapContainer });
     }, [state.center, zoom]);
 
-    const onDrawCreate = async (e) => {
-        const cords = e.features[0].geometry.coordinates.join(';')
-        const url = `https://api.mapbox.com/directions/v5/mapbox/cycling/${cords}?geometries=geojson&steps=true&&access_token=${mapboxgl.accessToken}`;
-        let res = await fetch(url)
-        let response = await res.json();
+    const onDrawCreate = ({ features }) => {
+        console.log(features);
+        // const cords = e.features[0].geometry.coordinates.join(';')
+        // const url = `https://api.mapbox.com/directions/v5/mapbox/cycling/${cords}?geometries=geojson&steps=true&&access_token=${mapboxgl.accessToken}`;
+        // let res = await fetch(url)
+        // let response = await res.json();
 
-        setCoordinates(response.routes[0].geometry.coordinates)
+        //setCoordinates(response.routes[0].geometry.coordinates)
+        if(features && !!features.length) {
+            dispatch({type: 'ADD_MAP_ROUTE', payload: {route: features[0]}})
+        }
     };
 
     const onDrawUpdate = ({ features }) => {
@@ -116,9 +120,6 @@ const MapboxGLMap = () => {
     };
     const onDrawDelete = ({ features }) => {
         console.log(features);
-    };
-    const onDrawRender = ({features}) => {
-        console.log(features, "features");
     };
 
     return <Mapbox ref={mapContainer} containerStyle={{height: "100vh", width: "100vw"}} zoom={[zoom]}
@@ -130,23 +131,29 @@ const MapboxGLMap = () => {
             onDrawCreate={onDrawCreate}
             onDrawUpdate={onDrawUpdate}
             onDrawDelete={onDrawDelete}
-            onDrawRender={onDrawRender}
         />
-        <Layer
-            type="line"
-            id="power"
-            layout={{
-                "line-join": "round",
-                "line-cap": "round"
-            }}
-            paint={{
-                "line-color": "#3b9ddd",
-                "line-width": 8,
-                "line-opacity": 0.8
-            }}
-        >
-            <Feature coordinates={coordinates} />
-        </Layer>
+
+        {state.routes && state.routes.map((route, index) => {
+            const geometryType = route.geometry.type === 'LineString' ? 'line' : route.geometry.type;
+            return (
+                <Layer
+                    key={index}
+                    type='line'
+                    id={index.toString()}
+                    layout={{
+                        "line-join": "round",
+                        "line-cap": "round"
+                    }}
+                    paint={{
+                        "line-color": "#3b9ddd",
+                        "line-width": 8,
+                        "line-opacity": 0.8
+                    }}
+                >
+                    <Feature coordinates={route.geometry.coordinates}/>
+                </Layer>
+            )
+        })}
     </Mapbox>
 };
 
