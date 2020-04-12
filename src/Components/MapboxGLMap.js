@@ -5,6 +5,7 @@ import AppContext from '../AppContext';
 import MapboxDraw from 'mapbox-gl-draw';
 import ReactMapboxGl, { Layer, Feature } from 'react-mapbox-gl';
 import DrawControl from "react-mapbox-gl-draw";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import {isEmpty} from 'lodash';
 import MapboxGeocoder from 'mapbox-gl-geocoder';
 import turf from '@turf/turf'
@@ -72,7 +73,8 @@ const MapboxGLMap = () => {
 
     const linePaint = {
         'line-color': '#4790E5',
-        'line-width': 12
+        'line-width': 12,
+        'line-opacity': 0.8
     };
 
     const polygonPaint = {
@@ -82,11 +84,11 @@ const MapboxGLMap = () => {
 
 
 
-    const getCirclePaint = () => ({
+    const circlePaint = {
         'circle-radius': circleRadius,
         'circle-color': '#000',
         'circle-opacity': 0.8
-    });
+    };
 
     useEffect(() => {
         if(map) {
@@ -138,17 +140,11 @@ const MapboxGLMap = () => {
             return (
                 <Layer
                     key={index}
-                    type='line'
+                    type={geometryType === 'line' ? 'line' : geometryType === 'Polygon' ? 'fill' : 'circle'}
                     id={index.toString()}
-                    layout={{
-                        "line-join": "round",
-                        "line-cap": "round"
-                    }}
-                    paint={{
-                        "line-color": "#3b9ddd",
-                        "line-width": 8,
-                        "line-opacity": 0.8
-                    }}
+                    layout={geometryType === 'line' ? lineLayout: {}}
+                    paint={geometryType === 'line' ? linePaint
+                    : geometryType === 'Polygon' ? polygonPaint : circlePaint }
                 >
                     <Feature coordinates={route.geometry.coordinates}/>
                 </Layer>
