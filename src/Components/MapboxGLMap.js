@@ -5,7 +5,7 @@ import AppContext from '../AppContext';
 import MapboxDraw from 'mapbox-gl-draw';
 import ReactMapboxGl, { Layer, Feature } from 'react-mapbox-gl';
 import DrawControl from "react-mapbox-gl-draw";
-import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import {isEmpty} from 'lodash';
 import MapboxGeocoder from 'mapbox-gl-geocoder';
 import turf from '@turf/turf'
@@ -125,9 +125,10 @@ const MapboxGLMap = () => {
     };
 
     return <Mapbox ref={mapContainer} containerStyle={{height: "100vh", width: "100vw"}} zoom={[zoom]}
-                   center={state.center} style="mapbox://styles/mapbox/streets-v11">
+                   center={state.center} style="mapbox://styles/mapbox/streets-v9">
         <DrawControl
             ref={drawControl}
+            position="top-left"
             displayControlsDefault={false}
             controls={{point: true, line_string:true, polygon: true}}
             onDrawCreate={onDrawCreate}
@@ -141,7 +142,7 @@ const MapboxGLMap = () => {
                 <Layer
                     key={index}
                     type={geometryType === 'line' ? 'line' : geometryType === 'Polygon' ? 'fill' : 'circle'}
-                    id={index.toString()}
+                    id={route.id}
                     layout={geometryType === 'line' ? lineLayout: {}}
                     paint={geometryType === 'line' ? linePaint
                     : geometryType === 'Polygon' ? polygonPaint : circlePaint }

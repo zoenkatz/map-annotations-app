@@ -14,7 +14,7 @@ const ActionButtons = () => {
                 return dispatch({type:'SET_IS_DRAW_POINT', payload: {isDrawPoint: true}});
 
         }
-    }, []);
+    }, [dispatch]);
 
     return (
         <div className="app-action-buttons">
