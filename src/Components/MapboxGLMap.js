@@ -139,6 +139,9 @@ const MapboxGLMap = () => {
     };
     const onDrawDelete = ({ features }) => {
         console.log(features);
+        if(features && !!features.length) {
+            dispatch({type: 'DELETE_MAP_ROUTE', payload: {route: features[0]}})
+        }
     };
 
     return <Mapbox ref={mapContainer} containerStyle={{height: "100vh", width: "100vw"}} zoom={[zoom]}
@@ -147,7 +150,7 @@ const MapboxGLMap = () => {
                     ref={drawControl}
                     position="top-left"
                     displayControlsDefault={false}
-                    controls={{point: true, line_string:true, polygon: true}}
+                    controls={{point: true, line_string:true, polygon: true, trash: true}}
                     onDrawCreate={onDrawCreate}
                     onDrawUpdate={onDrawUpdate}
                     onDrawDelete={onDrawDelete}
