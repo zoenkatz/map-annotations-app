@@ -75,7 +75,11 @@
         width: 100%;
         flex: 1;
         color: #ffffff;
-        text-align: center
+        text-align: center;
+
+        &.chosen-route{
+          background-color: #dc46d0;
+        }
       }
     }
   }

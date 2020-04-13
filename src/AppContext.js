@@ -8,7 +8,9 @@ const AppContext = React.createContext({
     isDrawLine: false,
     isDrawPoint: false,
     coordinates: [],
-    routes: []
+    routes: [],
+    clickedRoute: {},
+    drawControlRef: null
 });
 
 export default AppContext;

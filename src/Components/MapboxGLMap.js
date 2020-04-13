@@ -22,17 +22,21 @@ const MapboxGLMap = () => {
     const [map, setMap] = useState(null);
     const [mapDraw, setMapDraw] = useState(null);
     const [circleRadius, setCircleRadius] = useState(30);
-    const [routeIndex, setRouteIndex] = useState(0);
-    const [coordinates, setCoordinates] = useState([]);
     const [zoom, setZoom] = useState(8);
     const mapContainer = useRef(null);
     const drawControl = useRef(null);
 
+    // const setChosenRoute = useCallback((clickedRoute) => {
+    //     dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: {clickedRoute}}})
+    // }, [dispatch]);
+
+
     useEffect(() => {
-        if(drawControl.current) {
-            console.log(drawControl.current.draw);
+        if(drawControl) {
+            console.log(drawControl);
+            dispatch({type: 'SET_DRAW_CONTROL_REF', payload: {drawControlRef : drawControl}});
         }
-    }, [drawControl.current]);
+     }, [drawControl]);
 
     mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';
 
@@ -42,17 +46,6 @@ const MapboxGLMap = () => {
         maxZoom: 15,
         accessToken: mapboxgl.accessToken
     });
-
-    const initializeMap = useCallback(({ setMap, mapContainer}) => {
-        // setMap(new mapboxgl.Map({
-        //     container: mapContainer.current,
-        //     style: "mapbox://styles/mapbox/streets-v11", // stylesheet location
-        //     center: state.center,
-        //     zoom: zoom
-        // }));
-
-    }, [state.center, zoom, mapContainer.current, state.isDrawPolygon]);
-
 
     useEffect(() => {
         setMapDraw(new MapboxDraw({
@@ -82,12 +75,42 @@ const MapboxGLMap = () => {
         'fill-opacity': 0.7
     };
 
-
-
     const circlePaint = {
         'circle-radius': circleRadius,
         'circle-color': '#000',
         'circle-opacity': 0.8
+    };
+
+    const clickedLinePaint = {
+        'line-color': '#dc46d0',
+        'line-width': 12,
+        'line-opacity': 0.8
+    };
+
+    const clickedPolygonPaint = {
+        'fill-color': '#dc46d0',
+        'fill-opacity': 0.7
+    };
+
+
+    const clickedCirclePaint = {
+        'circle-radius': circleRadius,
+        'circle-color': '#dc46d0',
+        'circle-opacity': 0.8
+    };
+
+    const getPaint = (route) => {
+        const isClickedRoute = route.id === state.clickedRoute.id;
+        const geometryType = route.geometry.type;
+        debugger;
+
+        if(!isClickedRoute){
+            return (geometryType === 'LineString') ? linePaint : geometryType === 'Polygon' ? polygonPaint : circlePaint;
+        }
+
+        return (geometryType === 'LineString') ? clickedLinePaint : geometryType === 'Polygon' ? clickedPolygonPaint : clickedCirclePaint;
+
+
     };
 
     useEffect(() => {
@@ -101,17 +124,11 @@ const MapboxGLMap = () => {
 
     useEffect(() => {
         console.log(state, "state");
-        initializeMap({ setMap, mapContainer });
+       // initializeMap({ setMap, mapContainer });
     }, [state.center, zoom]);
 
     const onDrawCreate = ({ features }) => {
         console.log(features);
-        // const cords = e.features[0].geometry.coordinates.join(';')
-        // const url = `https://api.mapbox.com/directions/v5/mapbox/cycling/${cords}?geometries=geojson&steps=true&&access_token=${mapboxgl.accessToken}`;
-        // let res = await fetch(url)
-        // let response = await res.json();
-
-        //setCoordinates(response.routes[0].geometry.coordinates)
         if(features && !!features.length) {
             dispatch({type: 'ADD_MAP_ROUTE', payload: {route: features[0]}})
         }
@@ -125,33 +142,35 @@ const MapboxGLMap = () => {
     };
 
     return <Mapbox ref={mapContainer} containerStyle={{height: "100vh", width: "100vw"}} zoom={[zoom]}
-                   center={state.center} style="mapbox://styles/mapbox/streets-v9">
-        <DrawControl
-            ref={drawControl}
-            position="top-left"
-            displayControlsDefault={false}
-            controls={{point: true, line_string:true, polygon: true}}
-            onDrawCreate={onDrawCreate}
-            onDrawUpdate={onDrawUpdate}
-            onDrawDelete={onDrawDelete}
-        />
+                   center={state.center} style={"mapbox://styles/mapbox/streets-v9"}>
+                <DrawControl
+                    ref={drawControl}
+                    position="top-left"
+                    displayControlsDefault={false}
+                    controls={{point: true, line_string:true, polygon: true}}
+                    onDrawCreate={onDrawCreate}
+                    onDrawUpdate={onDrawUpdate}
+                    onDrawDelete={onDrawDelete}
+                    boxSelect={true}
+                />
 
-        {state.routes && state.routes.map((route, index) => {
-            const geometryType = route.geometry.type === 'LineString' ? 'line' : route.geometry.type;
-            return (
-                <Layer
-                    key={index}
-                    type={geometryType === 'line' ? 'line' : geometryType === 'Polygon' ? 'fill' : 'circle'}
-                    id={route.id}
-                    layout={geometryType === 'line' ? lineLayout: {}}
-                    paint={geometryType === 'line' ? linePaint
-                    : geometryType === 'Polygon' ? polygonPaint : circlePaint }
-                >
-                    <Feature coordinates={route.geometry.coordinates}/>
-                </Layer>
-            )
-        })}
-    </Mapbox>
+                {state.routes && state.routes.map((route, index) => {
+                    const geometryType = route.geometry.type === 'LineString' ? 'line' : route.geometry.type;
+                    return (
+                        <Layer
+                            key={index}
+                            type={geometryType === 'line' ? 'line' : geometryType === 'Polygon' ? 'fill' : 'circle'}
+                            id={route.id}
+                            layout={geometryType === 'line' ? lineLayout: {}}
+                            paint={getPaint(route)}
+                            //onClick={setChosenRoute(route)}
+                            className={route.id === state.clickedRoute.id ? 'chosen-route' : ''}
+                        >
+                            <Feature coordinates={route.geometry.coordinates}/>
+                        </Layer>
+                    )
+                })}
+            </Mapbox>
 };
 
 export default MapboxGLMap;

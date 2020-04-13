@@ -10,7 +10,7 @@ import './App.scss';
 import MapboxGLMap from './Components/MapboxGLMap';
 import SearchBar from "./Components/SearchBar";
 import ActionButtons from "./Components/ActionButtons";
-import Annotationlist from "./Components/AnnotationList";
+import AnnotationList from "./Components/AnnotationList";
 
 function App (){
     const initialState = useContext(AppContext);
@@ -53,7 +53,7 @@ function App (){
                <div className="app-info">
                    <SearchBar/>
                     <ActionButtons/>
-                   <Annotationlist/>
+                   <AnnotationList/>
                </div>
                <div className="app-map">
                    <MapboxGLMap/>

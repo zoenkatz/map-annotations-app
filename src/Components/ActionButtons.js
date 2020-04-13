@@ -2,8 +2,15 @@ import React, {useContext, useCallback} from 'react';
 import AppContext from "../AppContext";
 
 const ActionButtons = () => {
-    const {dispatch} = useContext(AppContext);
+    const {state, dispatch} = useContext(AppContext);
+    const onDrawCreate = ({ features }) => {
+        console.log(features);
+        if(features && !!features.length) {
+            dispatch({type: 'ADD_MAP_ROUTE', payload: {route: features[0]}})
+        }
+    };
     const startDrawing = useCallback((e) => {
+        console.log(state.drawControlRef, "drawRef");
         const targetValue = e.target && e.target.value;
         switch (targetValue) {
             case 'POLYGON':
@@ -14,11 +21,11 @@ const ActionButtons = () => {
                 return dispatch({type:'SET_IS_DRAW_POINT', payload: {isDrawPoint: true}});
 
         }
-    }, [dispatch]);
+    }, [dispatch, state.drawControlRef]);
 
     return (
         <div className="app-action-buttons">
-            <input type="button" onClick={startDrawing} name="point" value="POINT" />
+            <input type="button" onClick={onDrawCreate} name="point" value="POINT" />
             <input type="button" onClick={startDrawing} name="line" value="LINE" />
             <input type="button" onClick={startDrawing} name="polygon" value="POLYGON" />
         </div>

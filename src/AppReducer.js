@@ -33,10 +33,21 @@ export default function AppReducer (state, action){
                 isDrawPolygon: false
             };
         case "ADD_MAP_ROUTE":
-            const newRoutes = [...state.routes, action.payload.route]
+            const newRoutes = [...state.routes, action.payload.route];
             return {
               ...state,
               routes: newRoutes
+            };
+        case "SET_CLICKED_ROUTE":
+            return {
+                ...state,
+                clickedRoute: action.payload.route
+            };
+
+        case 'SET_DRAW_CONTROL_REF':
+            return {
+              ...state,
+                drawControlRef: action.payload.drawControlRef
             };
 
         default:

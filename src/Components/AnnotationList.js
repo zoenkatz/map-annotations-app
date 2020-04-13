@@ -1,15 +1,19 @@
-import React, {useContext} from 'react'
+import React, { useContext, useCallback } from 'react'
 import AppContext from "../AppContext";
 
-const Annotationlist = () => {
-    const {state} = useContext(AppContext);
+const AnnotationList = () => {
+    const {state, dispatch} = useContext(AppContext);
+    const setChosenRoute = useCallback((clickedRoute) => {
+        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: clickedRoute}})
+    }, []);
+
     return (
         <div className="app-annotation-list">
             <ul>
                 {state.routes && state.routes.map((route, index) => {
                     const routeType = route.geometry && route.geometry.type;
                     return (
-                        <li key={index}>{routeType}</li>
+                        <li key={index} onClick={() => setChosenRoute(route)} className={route.id === state.clickedRoute.id ? 'chosen-route' : ''}>{routeType}</li>
                     )
                 })}
             </ul>
@@ -17,4 +21,4 @@ const Annotationlist = () => {
     );
 };
 
-export default Annotationlist;
+export default AnnotationList;
