@@ -1,15 +1,9 @@
-import React, { useEffect, useRef, useState, useContext, useCallback } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import AppContext from '../AppContext';
 import MapboxDraw from 'mapbox-gl-draw';
-import ReactMapboxGl, { Layer, Feature } from 'react-mapbox-gl';
-import DrawControl from "react-mapbox-gl-draw";
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import {isEmpty} from 'lodash';
-import MapboxGeocoder from 'mapbox-gl-geocoder';
-import turf from '@turf/turf'
-import Geocode from "react-geocode";
 
 const styles = {
     width: "100vw",
@@ -21,42 +15,33 @@ const MapboxGLMap = () => {
     const {state, dispatch} = useContext(AppContext);
     const [map, setMap] = useState(null);
     const [mapDraw, setMapDraw] = useState(null);
-    const [circleRadius, setCircleRadius] = useState(30);
-    const [zoom, setZoom] = useState(8);
-    const mapContainer = useRef(null);
-    const drawControl = useRef(null);
-
-    // const setChosenRoute = useCallback((clickedRoute) => {
-    //     dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: {clickedRoute}}})
-    // }, [dispatch]);
-
+    const [circleRadius] = useState(10);
+   // const [zoom, setZoom] = useState(8);
 
     useEffect(() => {
-        if(drawControl) {
-            console.log(drawControl);
-            dispatch({type: 'SET_DRAW_CONTROL_REF', payload: {drawControlRef : drawControl}});
+        if(map) {
+            map.flyTo({center: state.center});
         }
-     }, [drawControl]);
+    }, [state.center, map]);
 
     mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';
 
 
-    const Mapbox = ReactMapboxGl({
-        minZoom: 8,
-        maxZoom: 15,
-        accessToken: mapboxgl.accessToken
-    });
+    useEffect(() => {
+        setMap(new mapboxgl.Map({
+            minZoom: 8,
+            maxZoom: 15,
+            accessToken: mapboxgl.accessToken,
+            container: 'map', // html element id in render
+            style: 'mapbox://styles/mapbox/streets-v9',
+            center: state.center, // note: lon comes before lat
+            zoom: [8]
+        }));
+    },[]);
 
     useEffect(() => {
-        setMapDraw(new MapboxDraw({
-            displayControlsDefault: false,
-            controls: {
-                polygon: state.isDrawPolygon,
-                trash: true
-            }
-        }));
-
-    }, [state.isDrawLine, state.isDrawPoint, state.isDrawPolygon]);
+        mapboxgl.center = state.center;
+    }, [state.center]);
 
 
     const lineLayout = {
@@ -66,7 +51,7 @@ const MapboxGLMap = () => {
 
     const linePaint = {
         'line-color': '#4790E5',
-        'line-width': 12,
+        'line-width': 5,
         'line-opacity': 0.8
     };
 
@@ -82,98 +67,126 @@ const MapboxGLMap = () => {
     };
 
     const clickedLinePaint = {
-        'line-color': '#dc46d0',
-        'line-width': 12,
-        'line-opacity': 0.8
+        ...linePaint,
+        'line-color': '#dc46d0'
     };
 
     const clickedPolygonPaint = {
-        'fill-color': '#dc46d0',
-        'fill-opacity': 0.7
+        ...polygonPaint,
+        'fill-color': '#dc46d0'
     };
 
 
     const clickedCirclePaint = {
-        'circle-radius': circleRadius,
-        'circle-color': '#dc46d0',
-        'circle-opacity': 0.8
+        ...circlePaint,
+        'circle-color': '#dc46d0'
     };
 
-    const getPaint = (route) => {
-        const isClickedRoute = route.id === state.clickedRoute.id;
-        const geometryType = route.geometry.type;
-        debugger;
+    useEffect(() => {
+        setMapDraw(new MapboxDraw({
+            displayControlsDefault: false,
+            controls: {
+                polygon: true,
+                point: true,
+                line_string: true,
+                trash: true
+            },
+            styles: [
+            // ACTIVE (being drawn)
+            // line stroke
+            {
+                "id": "gl-draw-line",
+                "type": "line",
+                "active": 'false',
+                "layout": lineLayout,
+                "paint": linePaint
+            },
+            // polygon fill
+            {
+                "id": "gl-draw-polygon",
+                "type": "fill",
+                "active": 'false',
+                "paint": polygonPaint
+            },
+            // vertex point halos
+            {
+                "id": "gl-draw-circle",
+                "type": "circle",
+                "active": 'false',
+                "paint": circlePaint
+            },
 
-        if(!isClickedRoute){
-            return (geometryType === 'LineString') ? linePaint : geometryType === 'Polygon' ? polygonPaint : circlePaint;
+            // INACTIVE (static, already drawn)
+            // line stroke
+            {
+                "id": "gl-draw-line-active",
+                "type": "line",
+                "active": 'true',
+                "layout":lineLayout,
+                "paint": clickedLinePaint
+            },
+            // polygon fill
+            {
+                "id": "gl-draw-polygon-active",
+                "type": "fill",
+                "active": 'true',
+                "paint": clickedPolygonPaint
+            },
+            // circle outline
+                {
+                    "id": "gl-draw-circle-active",
+                    "type": "circle",
+                    "active": 'true',
+                    "paint": clickedCirclePaint
+                }
+        ]
+        }));
+
+    }, []);
+
+    useEffect(() => {
+        if(mapDraw && state.clickedRoute) {
+            mapDraw.setFeatureProperty(state.clickedRoute.id, 'active', 'true');
         }
+    }, [state.clickedRoute]);
 
-        return (geometryType === 'LineString') ? clickedLinePaint : geometryType === 'Polygon' ? clickedPolygonPaint : clickedCirclePaint;
-
-
+    const onSelectFeature = ({features}) => {
+        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}})
     };
 
     useEffect(() => {
         if(map) {
             map.resize();
+            map.on('draw.create', drawCreate);
+            map.on('draw.render', drawRender);
+            map.on('draw.selectionchange', onSelectFeature)
         }
         if(map && mapDraw){
             map.addControl(mapDraw);
         }
     }, [map, mapDraw]);
 
-    useEffect(() => {
-        console.log(state, "state");
-       // initializeMap({ setMap, mapContainer });
-    }, [state.center, zoom]);
+    // useEffect(() => {
+    //     console.log(state, "state");
+    //    // initializeMap({ setMap, mapContainer });
+    // }, [state.center, zoom]);
 
-    const onDrawCreate = ({ features }) => {
-        console.log(features);
-        if(features && !!features.length) {
-            dispatch({type: 'ADD_MAP_ROUTE', payload: {route: features[0]}})
+    const drawCreate = () => {
+        const drawData = mapDraw.getAll();
+        dispatch({type: 'SET_FEATURES', payload: {features: drawData.features} });
+    };
+
+    const drawRender = () => {
+        const controlButtons = document.getElementsByClassName('mapboxgl-ctrl-group mapboxgl-ctrl');
+        const actionButtons = document.getElementsByClassName('app-action-buttons');
+        if(!!controlButtons.length && !!actionButtons.length) {
+            controlButtons[0].style.display = 'flex';
+            actionButtons[0].appendChild(controlButtons[0]);
+
         }
     };
 
-    const onDrawUpdate = ({ features }) => {
-        console.log(features);
-    };
-    const onDrawDelete = ({ features }) => {
-        console.log(features);
-        if(features && !!features.length) {
-            dispatch({type: 'DELETE_MAP_ROUTE', payload: {route: features[0]}})
-        }
-    };
-
-    return <Mapbox ref={mapContainer} containerStyle={{height: "100vh", width: "100vw"}} zoom={[zoom]}
-                   center={state.center} style={"mapbox://styles/mapbox/streets-v9"}>
-                <DrawControl
-                    ref={drawControl}
-                    position="top-left"
-                    displayControlsDefault={false}
-                    controls={{point: true, line_string:true, polygon: true, trash: true}}
-                    onDrawCreate={onDrawCreate}
-                    onDrawUpdate={onDrawUpdate}
-                    onDrawDelete={onDrawDelete}
-                    boxSelect={true}
-                />
-
-                {state.routes && state.routes.map((route, index) => {
-                    const geometryType = route.geometry.type === 'LineString' ? 'line' : route.geometry.type;
-                    return (
-                        <Layer
-                            key={index}
-                            type={geometryType === 'line' ? 'line' : geometryType === 'Polygon' ? 'fill' : 'circle'}
-                            id={route.id}
-                            layout={geometryType === 'line' ? lineLayout: {}}
-                            paint={getPaint(route)}
-                            //onClick={setChosenRoute(route)}
-                            className={route.id === state.clickedRoute.id ? 'chosen-route' : ''}
-                        >
-                            <Feature coordinates={route.geometry.coordinates}/>
-                        </Layer>
-                    )
-                })}
-            </Mapbox>
+    return <div id='map' />
 };
 
 export default MapboxGLMap;

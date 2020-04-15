@@ -5,7 +5,6 @@ import useEventListener from '../CustomHooks/UseEventListener';
 
 const SearchBar = () => {
     const [queryInput, setQueryInput] = useState("");
-    const inputRef = useRef(null);
     const {dispatch} = useContext(AppContext);
 
     const searchMapAnnotations = (event) => {

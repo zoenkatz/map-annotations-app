@@ -1,12 +1,8 @@
 import React, {useContext, useReducer, useEffect, useState} from 'react';
-//import './index.scss';
 import axios from 'axios';
 import AppContext from './AppContext';
 import AppReducer from './AppReducer';
 import './App.scss';
-//import Geocoder from '@mapbox/react-geocoder';
-//import Geocoder from 'react-geocoder-autocomplete'
-//import ReactMapboxGl, { Layer, Feature } from "react-mapbox-gl";
 import MapboxGLMap from './Components/MapboxGLMap';
 import SearchBar from "./Components/SearchBar";
 import ActionButtons from "./Components/ActionButtons";
@@ -46,17 +42,16 @@ function App (){
 
     }, [savedResponseMapCenter]);
 
-
     return (
        <AppContext.Provider value={{state, dispatch}}>
            <div className="app-map-annotations">
                <div className="app-info">
                    <SearchBar/>
                     <ActionButtons/>
-                   <AnnotationList/>
+                   <AnnotationList />
                </div>
                <div className="app-map">
-                   <MapboxGLMap/>
+                   <MapboxGLMap />
                </div>
            </div>
        </AppContext.Provider>

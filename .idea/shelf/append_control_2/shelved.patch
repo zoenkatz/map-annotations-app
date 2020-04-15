@@ -1,0 +1,52 @@
+Index: src/Components/ActionButtons.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, {useContext, useCallback} from 'react';\nimport AppContext from \"../AppContext\";\n\nconst ActionButtons = () => {\n    const {state, dispatch} = useContext(AppContext);\n    const onDrawCreate = ({ features }) => {\n        console.log(features);\n        if(features && !!features.length) {\n            dispatch({type: 'ADD_MAP_ROUTE', payload: {route: features[0]}})\n        }\n    };\n    const startDrawing = useCallback((e) => {\n        console.log(state.drawControlRef, \"drawRef\");\n        const targetValue = e.target && e.target.value;\n        switch (targetValue) {\n            case 'POLYGON':\n                return dispatch({type:'SET_IS_DRAW_POLYGON', payload: {isDrawPolygon: true}});\n            case 'LINE':\n                return dispatch({type:'SET_IS_DRAW_LINE', payload: {isDrawLine: true}});\n            case 'POINT':\n                return dispatch({type:'SET_IS_DRAW_POINT', payload: {isDrawPoint: true}});\n\n        }\n    }, [dispatch, state.drawControlRef]);\n\n    return (\n        <div className=\"app-action-buttons\">\n            <input type=\"button\" onClick={onDrawCreate} name=\"point\" value=\"POINT\" />\n            <input type=\"button\" onClick={startDrawing} name=\"line\" value=\"LINE\" />\n            <input type=\"button\" onClick={startDrawing} name=\"polygon\" value=\"POLYGON\" />\n        </div>\n    )\n};\n\nexport default ActionButtons;\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/Components/ActionButtons.js	(revision 18ceb4f38aaed96593c33190cc9c732e88e5bf74)
++++ src/Components/ActionButtons.js	(date 1586848230000)
+@@ -25,9 +25,9 @@
+ 
+     return (
+         <div className="app-action-buttons">
+-            <input type="button" onClick={onDrawCreate} name="point" value="POINT" />
+-            <input type="button" onClick={startDrawing} name="line" value="LINE" />
+-            <input type="button" onClick={startDrawing} name="polygon" value="POLYGON" />
++            {/*<input type="button" onClick={onDrawCreate} name="point" value="POINT" />*/}
++            {/*<input type="button" onClick={startDrawing} name="line" value="LINE" />*/}
++            {/*<input type="button" onClick={startDrawing} name="polygon" value="POLYGON" />*/}
+         </div>
+     )
+ };
+Index: src/Components/MapboxGLMap.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useEffect, useRef, useState, useContext, useCallback } from \"react\";\nimport mapboxgl from \"mapbox-gl\";\nimport \"mapbox-gl/dist/mapbox-gl.css\";\nimport AppContext from '../AppContext';\nimport MapboxDraw from 'mapbox-gl-draw';\nimport ReactMapboxGl, { Layer, Feature } from 'react-mapbox-gl';\nimport DrawControl from \"react-mapbox-gl-draw\";\nimport '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';\nimport {isEmpty} from 'lodash';\nimport MapboxGeocoder from 'mapbox-gl-geocoder';\nimport turf from '@turf/turf'\nimport Geocode from \"react-geocode\";\n\nconst styles = {\n    width: \"100vw\",\n    height: \"100vw\",\n    position: \"absolute\"\n};\n\nconst MapboxGLMap = () => {\n    const {state, dispatch} = useContext(AppContext);\n    const [map, setMap] = useState(null);\n    const [mapDraw, setMapDraw] = useState(null);\n    const [circleRadius, setCircleRadius] = useState(30);\n    const [zoom, setZoom] = useState(8);\n    const mapContainer = useRef(null);\n    const drawControl = useRef(null);\n\n    // const setChosenRoute = useCallback((clickedRoute) => {\n    //     dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: {clickedRoute}}})\n    // }, [dispatch]);\n\n\n    useEffect(() => {\n        if(drawControl) {\n            console.log(drawControl);\n            dispatch({type: 'SET_DRAW_CONTROL_REF', payload: {drawControlRef : drawControl}});\n        }\n     }, [drawControl]);\n\n    mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';\n\n\n    const Mapbox = ReactMapboxGl({\n        minZoom: 8,\n        maxZoom: 15,\n        accessToken: mapboxgl.accessToken\n    });\n\n    useEffect(() => {\n        setMapDraw(new MapboxDraw({\n            displayControlsDefault: false,\n            controls: {\n                polygon: state.isDrawPolygon,\n                trash: true\n            }\n        }));\n\n    }, [state.isDrawLine, state.isDrawPoint, state.isDrawPolygon]);\n\n\n    const lineLayout = {\n        'line-cap': 'round',\n        'line-join': 'round'\n    };\n\n    const linePaint = {\n        'line-color': '#4790E5',\n        'line-width': 12,\n        'line-opacity': 0.8\n    };\n\n    const polygonPaint = {\n        'fill-color': '#6F788A',\n        'fill-opacity': 0.7\n    };\n\n    const circlePaint = {\n        'circle-radius': circleRadius,\n        'circle-color': '#000',\n        'circle-opacity': 0.8\n    };\n\n    const clickedLinePaint = {\n        'line-color': '#dc46d0',\n        'line-width': 12,\n        'line-opacity': 0.8\n    };\n\n    const clickedPolygonPaint = {\n        'fill-color': '#dc46d0',\n        'fill-opacity': 0.7\n    };\n\n\n    const clickedCirclePaint = {\n        'circle-radius': circleRadius,\n        'circle-color': '#dc46d0',\n        'circle-opacity': 0.8\n    };\n\n    const getPaint = (route) => {\n        const isClickedRoute = route.id === state.clickedRoute.id;\n        const geometryType = route.geometry.type;\n        debugger;\n\n        if(!isClickedRoute){\n            return (geometryType === 'LineString') ? linePaint : geometryType === 'Polygon' ? polygonPaint : circlePaint;\n        }\n\n        return (geometryType === 'LineString') ? clickedLinePaint : geometryType === 'Polygon' ? clickedPolygonPaint : clickedCirclePaint;\n\n\n    };\n\n    useEffect(() => {\n        if(map) {\n            map.resize();\n        }\n        if(map && mapDraw){\n            map.addControl(mapDraw);\n        }\n    }, [map, mapDraw]);\n\n    useEffect(() => {\n        console.log(state, \"state\");\n       // initializeMap({ setMap, mapContainer });\n    }, [state.center, zoom]);\n\n    const onDrawCreate = ({ features }) => {\n        console.log(features);\n        if(features && !!features.length) {\n            dispatch({type: 'ADD_MAP_ROUTE', payload: {route: features[0]}})\n        }\n    };\n\n    const onDrawUpdate = ({ features }) => {\n        console.log(features);\n    };\n    const onDrawDelete = ({ features }) => {\n        console.log(features);\n        if(features && !!features.length) {\n            dispatch({type: 'DELETE_MAP_ROUTE', payload: {route: features[0]}})\n        }\n    };\n\n    return <Mapbox ref={mapContainer} containerStyle={{height: \"100vh\", width: \"100vw\"}} zoom={[zoom]}\n                   center={state.center} style={\"mapbox://styles/mapbox/streets-v9\"}>\n                <DrawControl\n                    ref={drawControl}\n                    position=\"top-left\"\n                    displayControlsDefault={false}\n                    controls={{point: true, line_string:true, polygon: true, trash: true}}\n                    onDrawCreate={onDrawCreate}\n                    onDrawUpdate={onDrawUpdate}\n                    onDrawDelete={onDrawDelete}\n                    boxSelect={true}\n                />\n\n                {state.routes && state.routes.map((route, index) => {\n                    const geometryType = route.geometry.type === 'LineString' ? 'line' : route.geometry.type;\n                    return (\n                        <Layer\n                            key={index}\n                            type={geometryType === 'line' ? 'line' : geometryType === 'Polygon' ? 'fill' : 'circle'}\n                            id={route.id}\n                            layout={geometryType === 'line' ? lineLayout: {}}\n                            paint={getPaint(route)}\n                            //onClick={setChosenRoute(route)}\n                            className={route.id === state.clickedRoute.id ? 'chosen-route' : ''}\n                        >\n                            <Feature coordinates={route.geometry.coordinates}/>\n                        </Layer>\n                    )\n                })}\n            </Mapbox>\n};\n\nexport default MapboxGLMap;\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/Components/MapboxGLMap.js	(revision 18ceb4f38aaed96593c33190cc9c732e88e5bf74)
++++ src/Components/MapboxGLMap.js	(date 1586848847000)
+@@ -144,6 +144,20 @@
+         }
+     };
+ 
++    useEffect(() => {
++        const controlButtons = document.getElementsByClassName('mapboxgl-ctrl-group mapboxgl-ctrl');
++        const actionButtons = document.getElementsByClassName('app-action-buttons');
++        if(!!controlButtons.length && !!actionButtons.length) {
++            actionButtons[0].appendChild(controlButtons[0]);
++        }
++    }, [document.getElementsByClassName('mapboxgl-control-container')[0]]);
++
++    const controlButtons = document.getElementsByClassName('mapboxgl-ctrl-group mapboxgl-ctrl');
++    const actionButtons = document.getElementsByClassName('app-action-buttons');
++    if(!!controlButtons.length && !!actionButtons.length) {
++        actionButtons[0].appendChild(controlButtons[0]);
++    }
++
+     return <Mapbox ref={mapContainer} containerStyle={{height: "100vh", width: "100vw"}} zoom={[zoom]}
+                    center={state.center} style={"mapbox://styles/mapbox/streets-v9"}>
+                 <DrawControl

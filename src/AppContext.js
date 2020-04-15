@@ -10,7 +10,8 @@ const AppContext = React.createContext({
     coordinates: [],
     routes: [],
     clickedRoute: {},
-    drawControlRef: null
+    drawControlRef: null,
+    features: []
 });
 
 export default AppContext;

@@ -55,6 +55,11 @@ export default function AppReducer (state, action){
               ...state,
                 routes: remainRoutes
             };
+        case 'SET_FEATURES':
+            return {
+                ...state,
+                features: action.payload.features
+            };
 
         default:
             return state
