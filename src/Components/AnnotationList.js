@@ -11,10 +11,10 @@ const AnnotationList = () => {
         <div className="app-annotation-list">
             <ul>
                 {state.features && state.features.map((route, index) => {
-                    const routeType = route.geometry && route.geometry.type;
+                    const routeAddress = route.address;
                     return (
                         <li key={index} onClick={() => setChosenRoute(route)}
-                            className={state.clickedRoute && route.id === state.clickedRoute.id ? 'chosen-route' : ''}>{routeType}</li>
+                            className={state.clickedRoute && route.id === state.clickedRoute.id ? 'chosen-route' : ''}>{routeAddress}</li>
                     )
                 })}
             </ul>

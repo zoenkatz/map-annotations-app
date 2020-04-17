@@ -4,6 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import AppContext from '../AppContext';
 import MapboxDraw from 'mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
+import axios from 'axios';
 
 const MapboxGLMap = () => {
     const {state, dispatch} = useContext(AppContext);
@@ -62,14 +63,6 @@ const MapboxGLMap = () => {
         }
     }, [state.clickedRoute, mapDraw]);
 
-    const onSelectFeature = ({features}) => {
-        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}});
-    };
-
-    const drawDelete = ({features}) => {
-        dispatch({type: 'DELETE_MAP_ROUTE', payload: {route: features[0]}});
-    };
-
     useEffect(() => {
         if (map) {
             map.resize();
@@ -83,10 +76,29 @@ const MapboxGLMap = () => {
         }
     }, [map, mapDraw]);
 
-    const drawCreate = () => {
-        const drawData = mapDraw.getAll();
-        dispatch({type: 'SET_FEATURES', payload: {features: drawData.features}});
+    const onSelectFeature = ({features}) => {
+        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}});
+    };
 
+    const drawDelete = ({features}) => {
+        dispatch({type: 'DELETE_MAP_ROUTE', payload: {route: features[0]}});
+    };
+
+
+    const drawCreate = async ({features}) => {
+        const geometryType = features[0].geometry.type;
+        const geometryCoords = features[0].geometry.coordinates[0];
+        const longitude = geometryType === 'LineString' ? geometryCoords[0] :
+            geometryType === 'Polygon' ? geometryCoords[0][0] : geometryCoords;
+
+        const latitude = geometryType === 'LineString' ? geometryCoords[1] :
+            geometryType === 'Polygon' ? geometryCoords[0][1] : features[0].geometry.coordinates[1];
+
+        const reverseGeoCode = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg`);
+        const place = reverseGeoCode.data.features[0].text;
+        const routeObj = {...features[0], address: place};
+
+        dispatch({type: 'ADD_MAP_ROUTE', payload: {route: routeObj}});
     };
 
     const drawRender = () => {

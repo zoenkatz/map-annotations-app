@@ -15,6 +15,12 @@ export default function AppReducer (state, action){
                 ...state,
                 clickedRoute: action.payload.route
             };
+        case 'ADD_MAP_ROUTE':
+            const finalFeatures = [...state.features, action.payload.route];
+            return {
+                ...state,
+                features: finalFeatures
+            };
         case 'DELETE_MAP_ROUTE':
             const remainFeatures = state.features.filter(route => route.id !== action.payload.route.id);
             return {
