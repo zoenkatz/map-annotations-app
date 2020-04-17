@@ -105,10 +105,15 @@ const MapboxGLMap = () => {
         dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}});
     };
 
+    const drawDelete = ({features}) => {
+        dispatch({type: 'DELETE_MAP_ROUTE', payload: {route: features[0]}});
+    };
+
     useEffect(() => {
         if(map) {
             map.resize();
             map.on('draw.create', drawCreate);
+            map.on('draw.delete', drawDelete);
             map.on('draw.render', drawRender);
             map.on('draw.selectionchange', onSelectFeature)
         }

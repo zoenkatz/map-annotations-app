@@ -1,0 +1,39 @@
+Index: src/Components/MapboxGLMap.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import React, { useEffect, useState, useContext } from \"react\";\nimport mapboxgl from \"mapbox-gl\";\nimport \"mapbox-gl/dist/mapbox-gl.css\";\nimport AppContext from '../AppContext';\nimport MapboxDraw from 'mapbox-gl-draw';\nimport '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';\n\nconst MapboxGLMap = () => {\n    const {state, dispatch} = useContext(AppContext);\n    const [map, setMap] = useState(null);\n    const [mapDraw, setMapDraw] = useState(null);\n    const [circleRadius] = useState(10);\n   // const [zoom, setZoom] = useState(8);\n\n    useEffect(() => {\n        if(map) {\n            map.flyTo({center: state.center, essential: true, zoom: 9,\n                bearing: 0, speed: 0.7});\n        }\n    }, [state.center]);\n\n    mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';\n\n\n    useEffect(() => {\n        setMap(new mapboxgl.Map({\n            minZoom: 8,\n            maxZoom: 15,\n            accessToken: mapboxgl.accessToken,\n            container: 'map', // html element id in render\n            style: 'mapbox://styles/mapbox/streets-v9',\n            center: state.center, // note: lon comes before lat\n            zoom: [8]\n        }));\n    },[]);\n\n    useEffect(() => {\n        mapboxgl.center = state.center;\n    }, [state.center]);\n\n\n    const lineLayout = {\n        'line-cap': 'round',\n        'line-join': 'round',\n    };\n\n    const linePaint = {\n        'line-color': '#4790E5',\n        'line-width': 5,\n        'line-opacity': 0.8\n    };\n\n    const polygonPaint = {\n        'fill-color': '#6F788A',\n        'fill-opacity': 0.7\n    };\n\n    const circlePaint = {\n        'circle-radius': circleRadius,\n        'circle-color': '#000',\n        'circle-opacity': 0.8\n    };\n\n    const clickedLinePaint = {\n        ...linePaint,\n        'line-color': '#dc46d0'\n    };\n\n    const clickedPolygonPaint = {\n        ...polygonPaint,\n        'fill-color': '#dc46d0'\n    };\n\n\n    const clickedCirclePaint = {\n        ...circlePaint,\n        'circle-color': '#dc46d0'\n    };\n\n    useEffect(() => {\n        setMapDraw(new MapboxDraw({\n            displayControlsDefault: false,\n            controls: {\n                polygon: true,\n                point: true,\n                line_string: true,\n                trash: true\n            }\n        }));\n\n    }, []);\n\n    useEffect(() => {\n        if(map && mapDraw && state.clickedRoute && state.clickedRoute.id) {\n            const geometryType = state.clickedRoute.geometry.type;\n            debugger;\n            geometryType === 'LineString'  ? map.flyTo({center: state.clickedRoute.geometry.coordinates[0]}) :\n            geometryType === 'Polygon' ? map.flyTo({center: state.clickedRoute.geometry.coordinates[0][0]}) :\n                map.flyTo({center: state.clickedRoute.geometry.coordinates});\n            mapDraw.changeMode('simple_select', { featureIds: [state.clickedRoute.id] })\n        }\n    }, [state.clickedRoute, mapDraw]);\n\n    const onSelectFeature = ({features}) => {\n        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}});\n    };\n\n    useEffect(() => {\n        if(map) {\n            map.resize();\n            map.on('draw.create', drawCreate);\n            map.on('draw.render', drawRender);\n            map.on('draw.selectionchange', onSelectFeature)\n        }\n        if(map && mapDraw){\n            map.addControl(mapDraw);\n        }\n    }, [map, mapDraw]);\n\n    const drawCreate = () => {\n        const drawData = mapDraw.getAll();\n        dispatch({type: 'SET_FEATURES', payload: {features: drawData.features} });\n\n    };\n\n    const drawRender = () => {\n        const controlButtons = document.getElementsByClassName('mapboxgl-ctrl-group mapboxgl-ctrl');\n        const actionButtons = document.getElementsByClassName('app-action-buttons');\n        if(!!controlButtons.length && !!actionButtons.length) {\n            controlButtons[0].style.display = 'flex';\n            actionButtons[0].appendChild(controlButtons[0]);\n\n        }\n    };\n\n    return <div id='map' />\n};\n\nexport default MapboxGLMap;\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/Components/MapboxGLMap.js	(revision 74aa9f9338cf26cc0be45262a15913b2ff239024)
++++ src/Components/MapboxGLMap.js	(date 1587134654000)
+@@ -85,7 +85,28 @@
+                 point: true,
+                 line_string: true,
+                 trash: true
+-            }
++            },
++            styles: [
++                // line
++                {
++                    "id": "gl-draw-line",
++                    "type": "line",
++                    "layout": lineLayout,
++                    "paint": linePaint
++                },
++                // polygon
++                {
++                    "id": "gl-draw-polygon-fill",
++                    "type": "polygon",
++                    "paint": polygonPaint
++                },
++                // circle
++                {
++                    "id": "gl-draw-circle",
++                    "type": "circle",
++                    "paint": circlePaint
++                }
++            ]
+         }));
+ 
+     }, []);

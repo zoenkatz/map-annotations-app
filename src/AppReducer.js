@@ -50,10 +50,10 @@ export default function AppReducer (state, action){
                 drawControlRef: action.payload.drawControlRef
             };
         case 'DELETE_MAP_ROUTE':
-            const remainRoutes = state.routes.filter(route => route.id === action.payload.route.id);
+            const remainFeatures = state.features.filter(route => route.id !== action.payload.route.id);
             return {
               ...state,
-                routes: remainRoutes
+                features: remainFeatures
             };
         case 'SET_FEATURES':
             return {
