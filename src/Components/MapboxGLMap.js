@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, {useEffect, useState, useContext} from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import AppContext from '../AppContext';
@@ -9,13 +9,13 @@ const MapboxGLMap = () => {
     const {state, dispatch} = useContext(AppContext);
     const [map, setMap] = useState(null);
     const [mapDraw, setMapDraw] = useState(null);
-    const [circleRadius] = useState(10);
-   // const [zoom, setZoom] = useState(8);
 
     useEffect(() => {
-        if(map) {
-            map.flyTo({center: state.center, essential: true, zoom: 9,
-                bearing: 0, speed: 0.7});
+        if (map) {
+            map.flyTo({
+                center: state.center, essential: true, zoom: 9,
+                bearing: 0, speed: 0.7
+            });
         }
     }, [state.center]);
 
@@ -32,50 +32,11 @@ const MapboxGLMap = () => {
             center: state.center, // note: lon comes before lat
             zoom: [8]
         }));
-    },[]);
+    }, []);
 
     useEffect(() => {
         mapboxgl.center = state.center;
     }, [state.center]);
-
-
-    const lineLayout = {
-        'line-cap': 'round',
-        'line-join': 'round',
-    };
-
-    const linePaint = {
-        'line-color': '#4790E5',
-        'line-width': 5,
-        'line-opacity': 0.8
-    };
-
-    const polygonPaint = {
-        'fill-color': '#6F788A',
-        'fill-opacity': 0.7
-    };
-
-    const circlePaint = {
-        'circle-radius': circleRadius,
-        'circle-color': '#000',
-        'circle-opacity': 0.8
-    };
-
-    const clickedLinePaint = {
-        ...linePaint,
-        'line-color': '#dc46d0'
-    };
-
-    const clickedPolygonPaint = {
-        ...polygonPaint,
-        'fill-color': '#dc46d0'
-    };
-
-
-    const clickedCirclePaint = {
-        ...circlePaint,
-        'circle-color': '#dc46d0'
-    };
 
     useEffect(() => {
         setMapDraw(new MapboxDraw({
@@ -91,13 +52,13 @@ const MapboxGLMap = () => {
     }, []);
 
     useEffect(() => {
-        if(map && mapDraw && state.clickedRoute && state.clickedRoute.id) {
+        if (map && mapDraw && state.clickedRoute && state.clickedRoute.id) {
             const geometryType = state.clickedRoute.geometry.type;
-            debugger;
-            geometryType === 'LineString'  ? map.flyTo({center: state.clickedRoute.geometry.coordinates[0]}) :
-            geometryType === 'Polygon' ? map.flyTo({center: state.clickedRoute.geometry.coordinates[0][0]}) :
-                map.flyTo({center: state.clickedRoute.geometry.coordinates});
-            mapDraw.changeMode('simple_select', { featureIds: [state.clickedRoute.id] })
+            const geometryCoords = state.clickedRoute.geometry.coordinates;
+
+            geometryType === 'LineString' ? map.flyTo({center: geometryCoords[0]}) :
+                geometryType === 'Polygon' ? map.flyTo({center: geometryCoords[0][0]}) : map.flyTo({center: geometryCoords});
+            mapDraw.changeMode('simple_select', {featureIds: [state.clickedRoute.id]})
         }
     }, [state.clickedRoute, mapDraw]);
 
@@ -110,35 +71,35 @@ const MapboxGLMap = () => {
     };
 
     useEffect(() => {
-        if(map) {
+        if (map) {
             map.resize();
             map.on('draw.create', drawCreate);
             map.on('draw.delete', drawDelete);
             map.on('draw.render', drawRender);
             map.on('draw.selectionchange', onSelectFeature)
         }
-        if(map && mapDraw){
+        if (map && mapDraw) {
             map.addControl(mapDraw);
         }
     }, [map, mapDraw]);
 
     const drawCreate = () => {
         const drawData = mapDraw.getAll();
-        dispatch({type: 'SET_FEATURES', payload: {features: drawData.features} });
+        dispatch({type: 'SET_FEATURES', payload: {features: drawData.features}});
 
     };
 
     const drawRender = () => {
         const controlButtons = document.getElementsByClassName('mapboxgl-ctrl-group mapboxgl-ctrl');
         const actionButtons = document.getElementsByClassName('app-action-buttons');
-        if(!!controlButtons.length && !!actionButtons.length) {
+        if (!!controlButtons.length && !!actionButtons.length) {
             controlButtons[0].style.display = 'flex';
             actionButtons[0].appendChild(controlButtons[0]);
 
         }
     };
 
-    return <div id='map' />
+    return <div id='map'/>
 };
 
 export default MapboxGLMap;

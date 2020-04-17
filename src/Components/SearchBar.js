@@ -1,4 +1,4 @@
-import React, {useContext, useState, useCallback, useRef} from 'react'
+import React, {useContext, useState, useCallback} from 'react'
 import {DebounceInput} from "react-debounce-input";
 import AppContext from "../AppContext";
 import useEventListener from '../CustomHooks/UseEventListener';
@@ -12,7 +12,6 @@ const SearchBar = () => {
     };
 
     const handleEnterKey = (event) => {
-        console.log(event.keyCode, "keyCode")
         if (event.keyCode === 13) {
             event.preventDefault();
             handleSearchClick();
@@ -20,14 +19,14 @@ const SearchBar = () => {
 
     };
 
-    useEventListener('keyup',handleEnterKey, document.getElementById('annotation-search'));
+    useEventListener('keyup', handleEnterKey, document.getElementById('annotation-search'));
 
     const handleSearchClick = useCallback(() => {
-        dispatch({ type: "SET_QUERY", payload: { query: queryInput }});
+        dispatch({type: "SET_QUERY", payload: {query: queryInput}});
     }, [queryInput, dispatch]);
 
     return (
-        <div className="app-search" >
+        <div className="app-search">
             <DebounceInput type="search"
                            list="last-queries"
                            placeholder="Search for annotations..."

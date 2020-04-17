@@ -1,4 +1,4 @@
-import React, { useContext, useCallback } from 'react'
+import React, {useContext, useCallback} from 'react'
 import AppContext from "../AppContext";
 
 const AnnotationList = () => {
@@ -13,7 +13,8 @@ const AnnotationList = () => {
                 {state.features && state.features.map((route, index) => {
                     const routeType = route.geometry && route.geometry.type;
                     return (
-                        <li key={index} onClick={() => setChosenRoute(route)} className={state.clickedRoute && route.id === state.clickedRoute.id ? 'chosen-route' : ''}>{routeType}</li>
+                        <li key={index} onClick={() => setChosenRoute(route)}
+                            className={state.clickedRoute && route.id === state.clickedRoute.id ? 'chosen-route' : ''}>{routeType}</li>
                     )
                 })}
             </ul>

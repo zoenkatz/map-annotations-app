@@ -8,7 +8,7 @@ import SearchBar from "./Components/SearchBar";
 import ActionButtons from "./Components/ActionButtons";
 import AnnotationList from "./Components/AnnotationList";
 
-function App (){
+function App() {
     const initialState = useContext(AppContext);
     const [state, dispatch] = useReducer(AppReducer, initialState);
     const useApi = (endpoint) => {
@@ -16,7 +16,7 @@ function App (){
         const getData = async () => {
             const response = await axios.get(endpoint);
             console.log(response.data);
-            if(response.data.features && !!response.data.features.length) {
+            if (response.data.features && !!response.data.features.length) {
                 setMapCenter(response.data.features[0].center);
             }
         };
@@ -31,7 +31,7 @@ function App (){
     const savedResponseMapCenter = useApi(`https://api.mapbox.com/geocoding/v5/mapbox.places/${state.query}.json?access_token=pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg`);
 
     useEffect(() => {
-        if(savedResponseMapCenter && !!savedResponseMapCenter.length) {
+        if (savedResponseMapCenter && !!savedResponseMapCenter.length) {
             dispatch({
                 type: "SET_MAP_CENTER",
                 payload: {center: savedResponseMapCenter}
@@ -41,18 +41,18 @@ function App (){
     }, [savedResponseMapCenter]);
 
     return (
-       <AppContext.Provider value={{state, dispatch}}>
-           <div className="app-map-annotations">
-               <div className="app-info">
-                   <SearchBar/>
+        <AppContext.Provider value={{state, dispatch}}>
+            <div className="app-map-annotations">
+                <div className="app-info">
+                    <SearchBar/>
                     <ActionButtons/>
-                   <AnnotationList />
-               </div>
-               <div className="app-map">
-                   <MapboxGLMap />
-               </div>
-           </div>
-       </AppContext.Provider>
+                    <AnnotationList/>
+                </div>
+                <div className="app-map">
+                    <MapboxGLMap/>
+                </div>
+            </div>
+        </AppContext.Provider>
     );
 
 }
