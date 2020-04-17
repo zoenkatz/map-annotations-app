@@ -5,7 +5,7 @@ const AnnotationList = () => {
     const {state, dispatch} = useContext(AppContext);
     const setChosenRoute = useCallback((clickedRoute) => {
         dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: clickedRoute}})
-    }, []);
+    }, [dispatch]);
 
     return (
         <div className="app-annotation-list">

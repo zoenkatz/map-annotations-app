@@ -25,8 +25,6 @@ function App (){
             getData();
         }, [state.query]);
 
-
-
         return mapCenter;
     };
 

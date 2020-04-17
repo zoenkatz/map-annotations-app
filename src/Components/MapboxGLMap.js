@@ -1,15 +1,9 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import AppContext from '../AppContext';
 import MapboxDraw from 'mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-
-const styles = {
-    width: "100vw",
-    height: "100vw",
-    position: "absolute"
-};
 
 const MapboxGLMap = () => {
     const {state, dispatch} = useContext(AppContext);
@@ -20,9 +14,10 @@ const MapboxGLMap = () => {
 
     useEffect(() => {
         if(map) {
-            map.flyTo({center: state.center});
+            map.flyTo({center: state.center, essential: true, zoom: 9,
+                bearing: 0, speed: 0.7});
         }
-    }, [state.center, map]);
+    }, [state.center]);
 
     mapboxgl.accessToken = 'pk.eyJ1Ijoiem9lbmthdHoiLCJhIjoiY2s3cmMzeDlvMDNnaDNlcGdpcDJxYTYxcyJ9.Wc97-chR3WRSOdDbM0PTNg';
 
@@ -46,7 +41,7 @@ const MapboxGLMap = () => {
 
     const lineLayout = {
         'line-cap': 'round',
-        'line-join': 'round'
+        'line-join': 'round',
     };
 
     const linePaint = {
@@ -90,68 +85,24 @@ const MapboxGLMap = () => {
                 point: true,
                 line_string: true,
                 trash: true
-            },
-            styles: [
-            // ACTIVE (being drawn)
-            // line stroke
-            {
-                "id": "gl-draw-line",
-                "type": "line",
-                "active": 'false',
-                "layout": lineLayout,
-                "paint": linePaint
-            },
-            // polygon fill
-            {
-                "id": "gl-draw-polygon",
-                "type": "fill",
-                "active": 'false',
-                "paint": polygonPaint
-            },
-            // vertex point halos
-            {
-                "id": "gl-draw-circle",
-                "type": "circle",
-                "active": 'false',
-                "paint": circlePaint
-            },
-
-            // INACTIVE (static, already drawn)
-            // line stroke
-            {
-                "id": "gl-draw-line-active",
-                "type": "line",
-                "active": 'true',
-                "layout":lineLayout,
-                "paint": clickedLinePaint
-            },
-            // polygon fill
-            {
-                "id": "gl-draw-polygon-active",
-                "type": "fill",
-                "active": 'true',
-                "paint": clickedPolygonPaint
-            },
-            // circle outline
-                {
-                    "id": "gl-draw-circle-active",
-                    "type": "circle",
-                    "active": 'true',
-                    "paint": clickedCirclePaint
-                }
-        ]
+            }
         }));
 
     }, []);
 
     useEffect(() => {
-        if(mapDraw && state.clickedRoute) {
-            mapDraw.setFeatureProperty(state.clickedRoute.id, 'active', 'true');
+        if(map && mapDraw && state.clickedRoute && state.clickedRoute.id) {
+            const geometryType = state.clickedRoute.geometry.type;
+            debugger;
+            geometryType === 'LineString'  ? map.flyTo({center: state.clickedRoute.geometry.coordinates[0]}) :
+            geometryType === 'Polygon' ? map.flyTo({center: state.clickedRoute.geometry.coordinates[0][0]}) :
+                map.flyTo({center: state.clickedRoute.geometry.coordinates});
+            mapDraw.changeMode('simple_select', { featureIds: [state.clickedRoute.id] })
         }
-    }, [state.clickedRoute]);
+    }, [state.clickedRoute, mapDraw]);
 
     const onSelectFeature = ({features}) => {
-        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}})
+        dispatch({type: 'SET_CLICKED_ROUTE', payload: {route: features[0]}});
     };
 
     useEffect(() => {
@@ -166,14 +117,10 @@ const MapboxGLMap = () => {
         }
     }, [map, mapDraw]);
 
-    // useEffect(() => {
-    //     console.log(state, "state");
-    //    // initializeMap({ setMap, mapContainer });
-    // }, [state.center, zoom]);
-
     const drawCreate = () => {
         const drawData = mapDraw.getAll();
         dispatch({type: 'SET_FEATURES', payload: {features: drawData.features} });
+
     };
 
     const drawRender = () => {
